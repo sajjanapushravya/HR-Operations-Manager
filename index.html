@@ -1,13 +1,866 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>hr-operations-manager</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Operations Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: 59 130 246;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-link:hover {
+            transform: translateX(8px);
+        }
+        
+        .card {
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), 
+                        box-shadow 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 
+                       0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .modal {
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .nav-active {
+            background-color: rgb(59 130 246);
+            color: white;
+            border-radius: 6px;
+        }
+        
+        table {
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 16px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-72 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">HR</div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">HR Ops</h1>
+                        <p class="text-xs text-gray-500 -mt-1">Manager</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 flex-1 overflow-y-auto">
+                <nav class="space-y-1">
+                    <a onclick="navigateTo('dashboard')" id="nav-dashboard" 
+                       class="sidebar-link nav-active flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-gauge w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a onclick="navigateTo('employees')" id="nav-employees"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-users w-5"></i>
+                        <span>Employees</span>
+                    </a>
+                    <a onclick="navigateTo('leaves')" id="nav-leaves"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-calendar-check w-5"></i>
+                        <span>Leaves</span>
+                    </a>
+                    <a onclick="navigateTo('recruitment')" id="nav-recruitment"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-user-plus w-5"></i>
+                        <span>Recruitment</span>
+                    </a>
+                    <a onclick="navigateTo('performance')" id="nav-performance"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-chart-line w-5"></i>
+                        <span>Performance</span>
+                    </a>
+                    <a onclick="navigateTo('reports')" id="nav-reports"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 cursor-pointer">
+                        <i class="fa-solid fa-file-chart-column w-5"></i>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+                
+                <div class="mt-8 px-4">
+                    <div class="text-xs font-semibold text-gray-500 mb-3 px-2">QUICK STATS</div>
+                    <div class="bg-gray-50 rounded-2xl p-4 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm">Total Employees</div>
+                            <div id="sidebar-total-emp" class="font-semibold text-blue-600">248</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm">On Leave Today</div>
+                            <div id="sidebar-on-leave" class="font-semibold text-amber-600">12</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm">Open Positions</div>
+                            <div id="sidebar-open-pos" class="font-semibold text-emerald-600">7</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-medium">JD</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-sm">John Doe</div>
+                        <div class="text-xs text-gray-500">HR Director</div>
+                    </div>
+                    <button onclick="logout()" 
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div id="page-title" class="text-2xl font-semibold text-gray-800">Dashboard</div>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="relative">
+                        <input id="search-input" 
+                               onkeyup="if(event.key === 'Enter') searchContent()"
+                               type="text" 
+                               placeholder="Search employees..." 
+                               class="bg-gray-100 border border-transparent focus:border-blue-300 w-72 pl-10 py-2.5 rounded-2xl text-sm focus:outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button onclick="showNotifications()" 
+                            class="relative w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+                        <i class="fa-solid fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">3</span>
+                    </button>
+                    
+                    <div class="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-2xl cursor-pointer">
+                        <div class="text-right">
+                            <div class="text-sm font-medium">Q3 2026</div>
+                            <div class="text-xs text-emerald-600">On Track</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="flex-1 overflow-auto p-8" id="main-content">
+                <!-- Dashboard Content (Default) -->
+                <div id="content-dashboard">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Stat Cards -->
+                        <div class="card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-500">Total Employees</div>
+                                    <div id="dash-total-emp" class="text-4xl font-bold mt-2">248</div>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl">
+                                    👥
+                                </div>
+                            </div>
+                            <div class="mt-6 text-emerald-600 text-sm flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+12 this month</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-500">Active Leaves</div>
+                                    <div id="dash-leaves" class="text-4xl font-bold mt-2">18</div>
+                                </div>
+                                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl">
+                                    🌴
+                                </div>
+                            </div>
+                            <div class="mt-6 text-amber-600 text-sm flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>4 pending approval</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-500">Open Positions</div>
+                                    <div id="dash-open-pos" class="text-4xl font-bold mt-2">7</div>
+                                </div>
+                                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl">
+                                    🔍
+                                </div>
+                            </div>
+                            <div class="mt-6 text-emerald-600 text-sm flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-down"></i>
+                                <span>2 filled this week</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-500">Avg Performance</div>
+                                    <div class="text-4xl font-bold mt-2">87%</div>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl">
+                                    📈
+                                </div>
+                            </div>
+                            <div class="mt-6 text-purple-600 text-sm flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+5% from last quarter</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-3xl p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="font-semibold text-lg">Recent Activity</h2>
+                                <button onclick="navigateTo('employees')" 
+                                        class="text-blue-600 text-sm flex items-center gap-1 hover:underline">
+                                    View all <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                            <div id="recent-activity" class="space-y-4"></div>
+                        </div>
+                        
+                        <!-- Upcoming Leaves -->
+                        <div class="bg-white rounded-3xl p-6">
+                            <h2 class="font-semibold text-lg mb-6">Upcoming Leaves</h2>
+                            <div id="upcoming-leaves" class="space-y-5"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employees Section -->
+                <div id="content-employees" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">All Employees</h2>
+                        <button onclick="showAddEmployeeModal()" 
+                                class="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 text-sm font-medium">
+                            <i class="fa-solid fa-plus"></i> 
+                            Add Employee
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-3xl overflow-hidden border border-gray-100">
+                        <table class="w-full" id="employees-table">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="text-left font-medium text-gray-500">Employee</th>
+                                    <th class="text-left font-medium text-gray-500">Department</th>
+                                    <th class="text-left font-medium text-gray-500">Position</th>
+                                    <th class="text-left font-medium text-gray-500">Join Date</th>
+                                    <th class="text-left font-medium text-gray-500">Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="employees-body" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Leaves Section -->
+                <div id="content-leaves" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Leave Management</h2>
+                        <button onclick="showApplyLeaveModal()" 
+                                class="bg-blue-600 hover:bg-blue-700 transition-colors text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 text-sm font-medium">
+                            <i class="fa-solid fa-calendar-plus"></i> 
+                            Apply for Leave
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-3xl p-6 text-center">
+                            <div class="text-5xl font-bold text-blue-600">12</div>
+                            <div class="text-sm text-gray-500 mt-2">Pending Approvals</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 text-center">
+                            <div class="text-5xl font-bold text-amber-600">8</div>
+                            <div class="text-sm text-gray-500 mt-2">On Leave Today</div>
+                        </div>
+                        <div class="bg-white rounded-3xl p-6 text-center">
+                            <div class="text-5xl font-bold text-emerald-600">94%</div>
+                            <div class="text-sm text-gray-500 mt-2">Utilization Rate</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-3xl overflow-hidden">
+                        <div class="p-6 border-b flex justify-between items-center">
+                            <h3 class="font-semibold">Leave Requests</h3>
+                            <select id="leave-filter" onchange="filterLeaves()" class="border border-gray-200 rounded-xl px-4 py-2 text-sm">
+                                <option value="all">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                            </select>
+                        </div>
+                        <div id="leaves-list" class="p-4"></div>
+                    </div>
+                </div>
+                
+                <!-- Recruitment -->
+                <div id="content-recruitment" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Recruitment Pipeline</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-6 rounded-3xl border border-gray-100">
+                            <div class="text-xs uppercase tracking-widest text-gray-400">Sourced</div>
+                            <div class="text-5xl font-bold mt-3">34</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-gray-100">
+                            <div class="text-xs uppercase tracking-widest text-gray-400">Screened</div>
+                            <div class="text-5xl font-bold mt-3">19</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-gray-100">
+                            <div class="text-xs uppercase tracking-widest text-gray-400">Interviewed</div>
+                            <div class="text-5xl font-bold mt-3">11</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-emerald-200 bg-emerald-50">
+                            <div class="text-xs uppercase tracking-widest text-emerald-600">Offers</div>
+                            <div class="text-5xl font-bold mt-3 text-emerald-600">4</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="addJobPosting()" 
+                            class="mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-2xl font-medium flex items-center gap-3">
+                        <i class="fa-solid fa-briefcase"></i>
+                        Post New Job Opening
+                    </button>
+                </div>
+                
+                <!-- Performance -->
+                <div id="content-performance" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-6">Performance Reviews</h2>
+                    <div class="bg-white rounded-3xl p-8 text-center">
+                        <i class="fa-solid fa-trophy text-6xl text-yellow-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold">Q2 Performance Cycle</h3>
+                        <p class="text-gray-500 mt-2">78% of employees reviewed</p>
+                        <button onclick="alert('Demo: Opening review form...')" 
+                                class="mt-8 px-6 py-3 bg-black text-white rounded-2xl">
+                            Start New Review Cycle
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Reports -->
+                <div id="content-reports" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-6">HR Reports</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div onclick="generateReport('headcount')" 
+                             class="cursor-pointer bg-white p-8 rounded-3xl border border-gray-100 hover:border-blue-300 transition-all">
+                            <div class="flex gap-4">
+                                <div class="text-4xl">📊</div>
+                                <div>
+                                    <div class="font-semibold">Headcount Report</div>
+                                    <div class="text-sm text-gray-500">Department-wise employee distribution</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div onclick="generateReport('attrition')" 
+                             class="cursor-pointer bg-white p-8 rounded-3xl border border-gray-100 hover:border-blue-300 transition-all">
+                            <div class="flex gap-4">
+                                <div class="text-4xl">📉</div>
+                                <div>
+                                    <div class="font-semibold">Attrition Analysis</div>
+                                    <div class="text-sm text-gray-500">Turnover trends and insights</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="bg-white border-t py-4 px-8 text-xs text-gray-400 flex justify-between items-center">
+                <div>© 2026 HR Operations Manager • Demo</div>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-gray-600">Help</a>
+                    <a href="#" class="hover:text-gray-600">Settings</a>
+                    <a href="#" class="hover:text-gray-600">Feedback</a>
+                </div>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- Add Employee Modal -->
+    <div id="add-employee-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="modal bg-white w-full max-w-md rounded-3xl p-8">
+            <h3 class="text-xl font-semibold mb-6">Add New Employee</h3>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Full Name</label>
+                    <input id="emp-name" type="text" class="w-full border border-gray-200 rounded-2xl px-4 py-3" placeholder="Sarah Chen">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Department</label>
+                        <select id="emp-dept" class="w-full border border-gray-200 rounded-2xl px-4 py-3">
+                            <option>Engineering</option>
+                            <option>Marketing</option>
+                            <option>Sales</option>
+                            <option>Finance</option>
+                            <option>HR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Position</label>
+                        <input id="emp-position" type="text" class="w-full border border-gray-200 rounded-2xl px-4 py-3" placeholder="Software Engineer">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Email</label>
+                    <input id="emp-email" type="email" class="w-full border border-gray-200 rounded-2xl px-4 py-3" placeholder="sarah@company.com">
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-8">
+                <button onclick="hideAddEmployeeModal()" 
+                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-200 rounded-2xl">Cancel</button>
+                <button onclick="addEmployee()" 
+                        class="flex-1 py-4 bg-blue-600 text-white font-medium rounded-2xl">Add Employee</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Apply Leave Modal -->
+    <div id="apply-leave-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="modal bg-white w-full max-w-md rounded-3xl p-8">
+            <h3 class="text-xl font-semibold mb-6">New Leave Request</h3>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Leave Type</label>
+                    <select id="leave-type" class="w-full border border-gray-200 rounded-2xl px-4 py-3">
+                        <option>Vacation</option>
+                        <option>Sick Leave</option>
+                        <option>Personal</option>
+                        <option>Maternity</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">From</label>
+                        <input id="leave-from" type="date" class="w-full border border-gray-200 rounded-2xl px-4 py-3">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">To</label>
+                        <input id="leave-to" type="date" class="w-full border border-gray-200 rounded-2xl px-4 py-3">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Reason</label>
+                    <textarea id="leave-reason" rows="3" class="w-full border border-gray-200 rounded-3xl px-4 py-3" placeholder="Family vacation..."></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-8">
+                <button onclick="hideApplyLeaveModal()" 
+                        class="flex-1 py-4 text-gray-600 font-medium border border-gray-200 rounded-2xl">Cancel</button>
+                <button onclick="submitLeaveRequest()" 
+                        class="flex-1 py-4 bg-blue-600 text-white font-medium rounded-2xl">Submit Request</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tailwind script already loaded via CDN
+        
+        let employees = [
+            {
+                id: 1,
+                name: "Alex Rivera",
+                department: "Engineering",
+                position: "Senior Developer",
+                joinDate: "2023-04-12",
+                status: "Active",
+                avatar: "AR"
+            },
+            {
+                id: 2,
+                name: "Priya Sharma",
+                department: "Marketing",
+                position: "Content Strategist",
+                joinDate: "2024-01-05",
+                status: "Active",
+                avatar: "PS"
+            },
+            {
+                id: 3,
+                name: "Michael Chen",
+                department: "Sales",
+                position: "Account Executive",
+                joinDate: "2022-11-18",
+                status: "On Leave",
+                avatar: "MC"
+            }
+        ]
+        
+        let leaveRequests = [
+            {
+                id: 1,
+                name: "Emma Watson",
+                type: "Vacation",
+                from: "2026-07-08",
+                to: "2026-07-15",
+                status: "Pending"
+            },
+            {
+                id: 2,
+                name: "Liam Patel",
+                type: "Sick Leave",
+                from: "2026-07-03",
+                to: "2026-07-05",
+                status: "Approved"
+            }
+        ]
+        
+        // Render employees table
+        function renderEmployees() {
+            const tbody = document.getElementById('employees-body')
+            tbody.innerHTML = ''
+            
+            employees.forEach(emp => {
+                const row = document.createElement('tr')
+                row.className = 'hover:bg-gray-50 transition-colors'
+                row.innerHTML = `
+                    <td class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-bold rounded-2xl flex items-center justify-center">${emp.avatar}</div>
+                        <div>
+                            <div class="font-medium">${emp.name}</div>
+                            <div class="text-xs text-gray-500">${emp.email || 'employee@company.com'}</div>
+                        </div>
+                    </td>
+                    <td><span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">${emp.department}</span></td>
+                    <td class="text-sm">${emp.position}</td>
+                    <td class="text-sm text-gray-500">${emp.joinDate}</td>
+                    <td>
+                        <span class="inline-block px-3 py-1 text-xs font-medium rounded-full 
+                            ${emp.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                            ${emp.status}
+                        </span>
+                    </td>
+                    <td class="text-right">
+                        <button onclick="viewEmployee(${emp.id})" class="text-blue-600 hover:text-blue-700">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </td>
+                `
+                tbody.appendChild(row)
+            })
+        }
+        
+        function renderRecentActivity() {
+            const container = document.getElementById('recent-activity')
+            container.innerHTML = `
+                <div class="flex gap-4">
+                    <div class="w-2 h-2 mt-2 bg-emerald-500 rounded-full"></div>
+                    <div class="flex-1">
+                        <div class="text-sm"><strong>Sarah Chen</strong> joined the Engineering team</div>
+                        <div class="text-xs text-gray-500">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-2 h-2 mt-2 bg-amber-500 rounded-full"></div>
+                    <div class="flex-1">
+                        <div class="text-sm"><strong>Leave request</strong> from David Kim approved</div>
+                        <div class="text-xs text-gray-500">Yesterday</div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-2 h-2 mt-2 bg-blue-500 rounded-full"></div>
+                    <div class="flex-1">
+                        <div class="text-sm">Quarterly performance reviews opened</div>
+                        <div class="text-xs text-gray-500">3 days ago</div>
+                    </div>
+                </div>
+            `
+        }
+        
+        function renderUpcomingLeaves() {
+            const container = document.getElementById('upcoming-leaves')
+            container.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="text-2xl">🌴</div>
+                    <div class="flex-1">
+                        <div class="font-medium">Emma Thompson</div>
+                        <div class="text-xs text-gray-500">Vacation • Jul 8 - Jul 15</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-2xl">🩹</div>
+                    <div class="flex-1">
+                        <div class="font-medium">Robert Lang</div>
+                        <div class="text-xs text-gray-500">Sick Leave • Tomorrow</div>
+                    </div>
+                </div>
+            `
+        }
+        
+        function renderLeaves() {
+            const container = document.getElementById('leaves-list')
+            container.innerHTML = ''
+            
+            leaveRequests.forEach(leave => {
+                const div = document.createElement('div')
+                div.className = "flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl"
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="text-lg">📅</div>
+                        <div>
+                            <div class="font-medium">${leave.name}</div>
+                            <div class="text-xs text-gray-500">${leave.type} • ${leave.from} to ${leave.to}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-4 py-1.5 text-xs font-medium rounded-3xl 
+                            ${leave.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                            ${leave.status}
+                        </span>
+                    </div>
+                `
+                container.appendChild(div)
+            })
+        }
+        
+        // Navigation
+        function navigateTo(section) {
+            // Hide all contents
+            document.querySelectorAll('#main-content > div').forEach(div => {
+                div.classList.add('hidden')
+            })
+            
+            // Show target
+            const target = document.getElementById(`content-${section}`)
+            if (target) target.classList.remove('hidden')
+            
+            // Update title
+            document.getElementById('page-title').textContent = 
+                section === 'dashboard' ? 'Dashboard' : 
+                section === 'employees' ? 'Employees' :
+                section === 'leaves' ? 'Leave Management' :
+                section === 'recruitment' ? 'Talent Acquisition' :
+                section === 'performance' ? 'Performance' : 'Reports'
+            
+            // Update active nav
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('nav-active')
+                if (link.id === `nav-${section}`) {
+                    link.classList.add('nav-active')
+                }
+            })
+            
+            // Render dynamic data when navigating
+            if (section === 'employees') renderEmployees()
+            if (section === 'leaves') renderLeaves()
+        }
+        
+        // Employee Modal
+        function showAddEmployeeModal() {
+            document.getElementById('add-employee-modal').classList.remove('hidden')
+            document.getElementById('emp-name').focus()
+        }
+        
+        function hideAddEmployeeModal() {
+            document.getElementById('add-employee-modal').classList.add('hidden')
+        }
+        
+        function addEmployee() {
+            const name = document.getElementById('emp-name').value || "New Employee"
+            const dept = document.getElementById('emp-dept').value
+            const position = document.getElementById('emp-position').value || "New Hire"
+            
+            const newEmp = {
+                id: employees.length + 1,
+                name: name,
+                department: dept,
+                position: position,
+                joinDate: "2026-07-03",
+                status: "Active",
+                avatar: name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
+            }
+            
+            employees.unshift(newEmp)
+            renderEmployees()
+            hideAddEmployeeModal()
+            
+            // Show toast
+            showToast(`Employee ${name} added successfully!`)
+        }
+        
+        function viewEmployee(id) {
+            const emp = employees.find(e => e.id === id)
+            if (emp) {
+                alert(`Viewing profile for ${emp.name}\n\nDepartment: ${emp.department}\nPosition: ${emp.position}\n\n(This would open a detailed profile in a full app)`)
+            }
+        }
+        
+        // Leave Modal
+        function showApplyLeaveModal() {
+            document.getElementById('apply-leave-modal').classList.remove('hidden')
+        }
+        
+        function hideApplyLeaveModal() {
+            document.getElementById('apply-leave-modal').classList.add('hidden')
+        }
+        
+        function submitLeaveRequest() {
+            const type = document.getElementById('leave-type').value
+            const from = document.getElementById('leave-from').value
+            const to = document.getElementById('leave-to').value
+            
+            if (!from || !to) {
+                alert("Please select dates")
+                return
+            }
+            
+            leaveRequests.unshift({
+                id: leaveRequests.length + 1,
+                name: "You (Demo)",
+                type: type,
+                from: from,
+                to: to,
+                status: "Pending"
+            })
+            
+            renderLeaves()
+            hideApplyLeaveModal()
+            showToast("Leave request submitted for approval!")
+        }
+        
+        function filterLeaves() {
+            // Demo filter
+            renderLeaves()
+        }
+        
+        function showNotifications() {
+            alert("🛎️ 3 new notifications:\n\n• New leave request pending\n• Interview scheduled with candidate\n• Performance review due")
+        }
+        
+        function logout() {
+            if (confirm("Sign out of HR Operations Manager?")) {
+                window.location.reload()
+            }
+        }
+        
+        function searchContent() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim()
+            if (!query) return
+            
+            if (query.includes('emp') || query.includes('staff')) {
+                navigateTo('employees')
+            } else if (query.includes('leave')) {
+                navigateTo('leaves')
+            } else {
+                showToast(`No results for "${query}". Try "employees" or "leave".`)
+            }
+        }
+        
+        function addJobPosting() {
+            alert("🎉 New job posting modal would open here.\n\nRole: Product Manager\nDepartment: Product")
+        }
+        
+        function generateReport(type) {
+            alert(`Generating ${type === 'headcount' ? 'Headcount' : 'Attrition'} Report...\n\n📄 Report ready for download (demo)`)
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div')
+            toast.style.position = 'fixed'
+            toast.style.bottom = '24px'
+            toast.style.right = '24px'
+            toast.style.backgroundColor = '#111827'
+            toast.style.color = 'white'
+            toast.style.padding = '16px 24px'
+            toast.style.borderRadius = '9999px'
+            toast.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.2)'
+            toast.style.zIndex = '9999'
+            toast.style.display = 'flex'
+            toast.style.alignItems = 'center'
+            toast.style.gap = '12px'
+            toast.innerHTML = `
+                <i class="fa-solid fa-check-circle text-emerald-400"></i>
+                <span>${message}</span>
+            `
+            document.body.appendChild(toast)
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 1, 1)'
+                toast.style.opacity = '0'
+                toast.style.transform = 'translateY(20px)'
+                setTimeout(() => toast.remove(), 400)
+            }, 2800)
+        }
+        
+        function toggleSidebar() {
+            alert("Sidebar toggle for mobile (demo)")
+        }
+        
+        // Initialize the app
+        function initializeApp() {
+            // Render initial data
+            renderEmployees()
+            renderRecentActivity()
+            renderUpcomingLeaves()
+            renderLeaves()
+            
+            // Set sidebar stats
+            document.getElementById('sidebar-total-emp').textContent = employees.length + 245
+            document.getElementById('sidebar-on-leave').textContent = "12"
+            document.getElementById('sidebar-open-pos').textContent = "7"
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.metaKey && e.key === "k") {
+                    e.preventDefault()
+                    document.getElementById('search-input').focus()
+                }
+            })
+            
+            // Make it feel alive
+            console.log('%cHR Operations Manager initialized successfully! 🚀', 'color: #3b82f6; font-weight: 600')
+        }
+        
+        // Boot the app
+        window.onload = initializeApp
+    </script>
+</body>
 </html>
